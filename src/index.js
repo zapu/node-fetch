@@ -102,6 +102,15 @@ export default function fetch(url, opts) {
 			clearTimeout(reqTimeout);
 
 			const headers = createHeadersLenient(res.headers);
+			try {
+				// Force parsing of the headers to catch invalid ones before
+				// we pass them to Response constructor.
+				new Headers(headers)
+			} catch (err) {
+				reject(new FetchError(`request to ${request.url} failed, failed to parse incoming headers, reason: ${err.message}`, 'system', err));
+				finalize();
+				return;
+			}
 
 			// HTTP fetch step 5
 			if (fetch.isRedirect(res.statusCode)) {
